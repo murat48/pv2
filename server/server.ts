@@ -14,6 +14,7 @@ app.use(express.json());
 // Protected endpoint - requires STX payment (V2)
 app.get(
   '/api/premium-data',
+ 
   paymentMiddleware({
     amount: STXtoMicroSTX(0.00001), // 0.00001 STX = 10 microSTX
     payTo: SERVER_ADDRESS,          // V2 uses 'payTo' instead of 'address'

@@ -6,9 +6,106 @@ import { paymentMiddleware, getPayment, STXtoMicroSTX } from 'x402-stacks';
 const NETWORK = (process.env.NETWORK as 'mainnet' | 'testnet') || 'testnet';
 const SERVER_ADDRESS = process.env.SERVER_ADDRESS!;
 const FACILITATOR_URL = process.env.FACILITATOR_URL || 'https://facilitator.stacksx402.com';
+const SERVICE_NAME = process.env.SERVICE_NAME || 'Premium Service';
+const SERVICE_IMAGE = process.env.SERVICE_IMAGE || 'https://your-api.com/logo.png';
+
+// Type definitions for x402 response
+type FieldDef = {
+  type: string;
+  required?: boolean;
+  description?: string;
+  enum?: string[];
+};
+
+type OutputSchema = {
+  input: {
+    type: "request";
+    method: "GET" | "POST";
+    queryParams?: Record<string, FieldDef>;
+    bodyParams?: Record<string, FieldDef>;
+  };
+  output: Record<string, any>;
+};
+
+type Accepts = {
+  scheme: "exact";
+  network: "stacks";
+  maxAmountRequired: string;
+  resource: string;
+  description: string;
+  mimeType: string;
+  payTo: string;
+  maxTimeoutSeconds: number;
+  asset: string;
+  outputSchema: OutputSchema;
+};
+
+type x402RegisterResponse = {
+  x402Version: number;
+  name: string;
+  image?: string;
+  accepts: Accepts[];
+};
 
 const app = express();
 app.use(express.json());
+
+// X402 Registration endpoint - x402scan uyumlu yanıt
+app.post('/register', (req: Request, res: Response) => {
+  const response: x402RegisterResponse = {
+    x402Version: 1,
+    name: SERVICE_NAME,
+    image: SERVICE_IMAGE,
+    accepts: [
+      {
+        scheme: 'exact',
+        network: 'stacks',
+        maxAmountRequired: '10',
+        resource: `${FACILITATOR_URL}/api/premium-data`,
+        description: 'Get premium data with STX payment',
+        mimeType: 'application/json',
+        payTo: SERVER_ADDRESS,
+        maxTimeoutSeconds: 60,
+        asset: 'STX',
+        outputSchema: {
+          input: {
+            type: 'request',
+            method: 'GET',
+            queryParams: {
+              format: {
+                type: 'string',
+                required: false,
+                description: 'Response format (json/xml)',
+                enum: ['json', 'xml'],
+              },
+            },
+          },
+          output: {
+            success: { type: 'boolean' },
+            message: { type: 'string' },
+            data: {
+              type: 'object',
+              properties: {
+                secretValue: { type: 'number' },
+                timestamp: { type: 'string' },
+              },
+            },
+            payment: {
+              type: 'object',
+              properties: {
+                transaction: { type: 'string' },
+                payer: { type: 'string' },
+                network: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    ],
+  };
+
+  res.json(response);
+});
 
 // Protected endpoint - requires STX payment (V2)
 app.get(
