@@ -17,8 +17,7 @@ app.get(
     amount: STXtoMicroSTX(0.00001),
     payTo: SERVER_ADDRESS,
     network: NETWORK,
-    asset: 'STX',
-    facilitatorUrl: FACILITATOR_URL,
+   facilitatorUrl: FACILITATOR_URL,
   }),
   (req: Request, res: Response) => {
     const payment = getPayment(req);
