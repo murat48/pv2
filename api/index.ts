@@ -212,7 +212,7 @@ app.get(['/register', '/api/register'], (req: Request, res: Response) => {
 });
 
 // Demo endpoint (STX)
-app.get('/api/demo', (req: Request, res: Response) => {
+app.get('/api/premium-stx', (req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Demo access granted!',
