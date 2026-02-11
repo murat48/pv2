@@ -61,7 +61,7 @@ app.get(['/register', '/api/register'], (req: Request, res: Response) => {
         scheme: 'exact',
         network: 'stacks',
         maxAmountRequired: '10',
-        resource: `${FACILITATOR_URL}/api/premium-data`,
+        resource: 'https://pv2-six.vercel.app/api/premium-data',
         description: 'Get premium data with STX payment',
         mimeType: 'application/json',
         payTo: SERVER_ADDRESS,
