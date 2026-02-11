@@ -50,8 +50,8 @@ type x402RegisterResponse = {
 const app = express();
 app.use(express.json());
 
-// X402 Registration endpoint - x402scan uyumlu yanıt
-app.post('/register', (req: Request, res: Response) => {
+// X402 Registration endpoint - matches both /register and /api/register
+app.get(['/register', '/api/register'], (req: Request, res: Response) => {
   const response: x402RegisterResponse = {
     x402Version: 1,
     name: SERVICE_NAME,
@@ -109,7 +109,7 @@ app.post('/register', (req: Request, res: Response) => {
 
 // Protected endpoint - requires STX payment (V2)
 app.get(
-  '/api/premium-data',
+  ['/api/premium-data', '/premium-data'],
   paymentMiddleware({
     amount: STXtoMicroSTX(0.00001),
     payTo: SERVER_ADDRESS,
@@ -136,7 +136,7 @@ app.get(
 );
 
 // Health check endpoint (no payment required)
-app.get('/health', (req: Request, res: Response) => {
+app.get(['/health', '/api/health'], (req: Request, res: Response) => {
   res.json({ status: 'ok', network: NETWORK });
 });
 
