@@ -1,9 +1,12 @@
 {
-  "buildCommand": "npm install",
-  "framework": "express",
-  "functions": {
-    "server/server.ts": {
-      "runtime": "nodejs20.x"
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/health",
+      "destination": "/api"
     }
-  }
+  ]
 }
