@@ -6,8 +6,7 @@
   "functions": {
     "api/index.ts": {
       "runtime": "nodejs18.x",
-      "memory": 1024,
-      "regions": ["iad1"]
+      "memory": 1024
     }
   },
   "rewrites": [
