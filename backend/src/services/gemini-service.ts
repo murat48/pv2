@@ -70,7 +70,7 @@ export async function analyzeImageWithGemini({
     }
 
     const text = response.response.text();
-    const isImageQuery = imageBase64 && imageBase64.trim().length > 0;
+    const isImageQuery = !!(imageBase64 && imageBase64.trim().length > 0);
     const qualityScore = calculateResponseQuality(text, question, isImageQuery);
 
     // Update accuracy based on actual quality
