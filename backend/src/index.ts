@@ -27,7 +27,7 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Smart Vision Bot Backend running on port ${PORT}`);
   console.log(`API: http://localhost:${PORT}`);
-  console.log(`Health: http://localhost:${PORT}/health`);
+  console.log(`Health: http://localhost:${PORT}/health`); console.log(`Health: http://localhost:${PORT}/health`);
   console.log(`Network: ${NETWORK}`);
   console.log(`Facilitator: ${FACILITATOR_URL}`);
   console.log(`💰 x402-stacks Payment Middleware: ACTIVE`);
