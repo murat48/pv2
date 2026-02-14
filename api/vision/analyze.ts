@@ -79,36 +79,55 @@ async function analyzeWithGemini(
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    console.log('⚠️ GEMINI_API_KEY not found, using mock data');
-    return generateMockAnalysis(question, tier);
+    const errorMsg = '❌ CRITICAL: GEMINI_API_KEY environment variable not set';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   try {
     console.log('🔑 Using Gemini API with key:', apiKey.substring(0, 10) + '...');
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    const content = imageBase64
-      ? [
-          {
-            inlineData: {
-              mimeType: 'image/jpeg',
-              data: imageBase64,
-            },
+    let content: any[];
+    if (imageBase64) {
+      content = [
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: imageBase64,
           },
-          question,
-        ]
-      : [question];
+        },
+        { text: question },
+      ];
+    } else {
+      content = [{ text: question }];
+    }
 
+    console.log('📤 Sending request to Gemini API...');
     const result = await model.generateContent(content);
     const response = result.response;
     const text = response.text();
 
-    return text || generateMockAnalysis(question, tier);
+    if (!text) {
+      console.warn('⚠️ Empty response from Gemini API');
+      return generateMockAnalysis(question, tier);
+    }
+
+    console.log('✅ Gemini API response received, length:', text.length);
+    return text;
   } catch (error: any) {
-    console.error('Gemini API error:', error);
-    // Fallback to mock data on error
-    return generateMockAnalysis(question, tier);
+    console.error('❌ Gemini API error:', error?.message || error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    
+    // Only fallback to mock if API key is invalid or service unavailable
+    if (error?.message?.includes('API key') || error?.message?.includes('401')) {
+      console.error('API key issue - check GEMINI_API_KEY');
+      throw error;
+    }
+    
+    // For other errors, still throw so client knows there's an issue
+    throw new Error(`Gemini API failed: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -126,9 +145,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    console.log(`📨 New analysis request: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"`);
+    
     const hasImage = (imageBase64?.trim().length ?? 0) > 0;
     const complexity = detectComplexity(question, hasImage);
     const selectedTier = mapComplexityToTier(complexity);
+
+    console.log(`📊 Detected complexity: ${complexity}, Tier: ${selectedTier}${hasImage ? ', Image: YES' : ''}`);
 
     // Generate analysis using Gemini
     const startTime = Date.now();
@@ -167,10 +190,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('Analysis error:', error);
-    res.status(500).json({
+    console.error('❌ Analysis error:', error?.message || error);
+    res.status(error?.message?.includes('API key') ? 401 : 500).json({
       success: false,
-      error: error.message || 'Analysis failed',
+      error: error?.message || 'Analysis failed',
+      timestamp: new Date().toISOString(),
     });
   }
 }

@@ -25,35 +25,47 @@ async function analyzeWithGemini(
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    console.log('⚠️ GEMINI_API_KEY not found, using mock data');
-    return generateMockAnalysis(question, tier);
+    const errorMsg = '❌ CRITICAL: GEMINI_API_KEY environment variable not set';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   try {
     console.log('🔑 Using Gemini API with key:', apiKey.substring(0, 10) + '...');
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-    const content = imageBase64
-      ? [
-          {
-            inlineData: {
-              mimeType: 'image/jpeg',
-              data: imageBase64,
-            },
+    let content: any[];
+    if (imageBase64) {
+      content = [
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: imageBase64,
           },
-          question,
-        ]
-      : [question];
+        },
+        { text: question },
+      ];
+    } else {
+      content = [{ text: question }];
+    }
 
+    console.log('📤 Sending request to Gemini API...');
     const result = await model.generateContent(content);
     const response = result.response;
     const text = response.text();
 
-    return text || generateMockAnalysis(question, tier);
+    if (!text) {
+      console.warn('⚠️ Empty response from Gemini API');
+      throw new Error('Empty response from Gemini API');
+    }
+
+    console.log('✅ Gemini API response received, length:', text.length);
+    return text;
   } catch (error: any) {
-    console.error('Gemini API error:', error);
-    return generateMockAnalysis(question, tier);
+    console.error('❌ Gemini API error:', error?.message || error);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    throw error;
   }
 }
 
@@ -81,11 +93,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const hasImage = (imageBase64?.trim().length ?? 0) > 0;
+    console.log(`📨 Premium analysis request: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"${hasImage ? ', with image' : ''}`);
     
     // Check for x402 payment header
     const paymentHeader = req.headers['x-payment'];
     if (!paymentHeader) {
       // Return 402 Payment Required if no payment info
+      console.log('💳 Payment required but not provided');
       res.status(402).json({
         success: false,
         x402Version: 1,
@@ -101,6 +115,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    console.log('✅ Payment verified, proceeding with analysis');
+    
     // Analysis with Gemini
     const startTime = Date.now();
     const analysis = await analyzeWithGemini(question, imageBase64, 'premium');
@@ -134,10 +150,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error('Premium analysis error:', error);
-    res.status(500).json({
+    console.error('❌ Premium analysis error:', error?.message || error);
+    res.status(error?.message?.includes('API key') ? 401 : 500).json({
       success: false,
-      error: error.message || 'Premium analysis failed',
+      error: error?.message || 'Premium analysis failed',
+      timestamp: new Date().toISOString(),
     });
   }
 }

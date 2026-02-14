@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChatMessage, AnalysisResult, Transaction, DailyStats } from '../types/index';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3003' : '');
+// API Base URL auto-configuration
+// In localhost: uses http://localhost:3003/api
+// In production: uses relative path /api (which routes to serverless functions)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3003' : '/api');
 
 interface PaymentDetails {
   success: boolean;
@@ -70,7 +74,7 @@ export default function SmartVisionBot() {
     hasImage: boolean
   ): Promise<PaymentDetails | null> => {
     try {
-      const response = await fetch(`${API_BASE_URL || ''}/api/vision/get-payment-details`, {
+      const response = await fetch(`${API_BASE_URL}/vision/get-payment-details`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tier, hasImage }),
@@ -104,7 +108,7 @@ export default function SmartVisionBot() {
       };
 
       // Step 1: Analyze info (get tier estimate)
-      const infoResponse = await fetch(`${API_BASE_URL || ''}/api/vision/analyze-info`, {
+      const infoResponse = await fetch(`${API_BASE_URL}/vision/analyze-info`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -147,7 +151,7 @@ export default function SmartVisionBot() {
       
       setPaymentStatus(isPremium ? '⏳ Processing premium analysis with payment...' : '⏳ Processing analysis...');
 
-      const response = await fetch(`${API_BASE_URL || ''}/api${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
