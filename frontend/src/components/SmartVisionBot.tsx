@@ -5,7 +5,7 @@ import { ChatMessage, AnalysisResult, Transaction, DailyStats } from '../types/i
 // In localhost: uses http://localhost:3003/api
 // In production: uses relative path /api (which routes to serverless functions)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'https://pv2-six.vercel.app/api' : '/api');
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3003/api' : '/api');
 
 interface PaymentDetails {
   success: boolean;
