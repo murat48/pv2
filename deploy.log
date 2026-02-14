@@ -1,0 +1,5 @@
+Vercel CLI 50.15.1
+Retrieving project…
+Deploying murats-projects-bb47a928/projectv2
+Error: If `rewrites`, `redirects`, `headers`, `cleanUrls` or `trailingSlash` are used, then `routes` cannot be present.
+Learn More: https://vercel.link/mix-routing-props
