@@ -6,8 +6,6 @@ interface AnalysisPayload {
   imageBase64?: string;
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
 function detectComplexity(question: string, hasImage: boolean): number {
   const lowerQuestion = question.toLowerCase();
   const wordCount = question.split(/\s+/).length;
@@ -78,12 +76,16 @@ async function analyzeWithGemini(
   imageBase64: string | undefined,
   tier: string
 ): Promise<string> {
-  if (!process.env.GEMINI_API_KEY) {
-    // Fallback to mock if no API key
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    console.log('⚠️ GEMINI_API_KEY not found, using mock data');
     return generateMockAnalysis(question, tier);
   }
 
   try {
+    console.log('🔑 Using Gemini API with key:', apiKey.substring(0, 10) + '...');
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
 
     const content = imageBase64

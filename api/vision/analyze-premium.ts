@@ -6,8 +6,6 @@ interface AnalysisPayload {
   imageBase64?: string;
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
 function generateMockAnalysis(question: string, tier: string): string {
   const tiers = {
     standard: 'A basic analysis of your question.',
@@ -24,11 +22,16 @@ async function analyzeWithGemini(
   imageBase64: string | undefined,
   tier: string
 ): Promise<string> {
-  if (!process.env.GEMINI_API_KEY) {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    console.log('⚠️ GEMINI_API_KEY not found, using mock data');
     return generateMockAnalysis(question, tier);
   }
 
   try {
+    console.log('🔑 Using Gemini API with key:', apiKey.substring(0, 10) + '...');
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-pro-vision' });
 
     const content = imageBase64
