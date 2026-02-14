@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChatMessage, AnalysisResult, Transaction, DailyStats } from '../types/index';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname !== 'localhost' ? 'http://localhost:3003' : 'http://localhost:3003');
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3003' : '');
 
 interface PaymentDetails {
   success: boolean;
