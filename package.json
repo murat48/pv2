@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.3.0",
+    "@vercel/node": "^3.0.0",
     "dotenv": "^16.6.1",
     "express": "^4.22.1",
     "x402-stacks": "^2.0.1"
