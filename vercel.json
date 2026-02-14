@@ -3,30 +3,5 @@
   "buildCommand": "npm run build:frontend",
   "installCommand": "npm install && cd frontend && npm install",
   "framework": "vite",
-  "outputDirectory": "frontend/dist",
-  "rewrites": [
-    {
-      "source": "/:path*",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-        }
-      ]
-    }
-  ]
+  "outputDirectory": "frontend/dist"
 }
