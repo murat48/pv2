@@ -52,7 +52,10 @@ if (typeof window !== 'undefined') {
     // Proxy Hiro API calls through backend
     if (typeof url === 'string' && url.includes('api.testnet.hiro.so')) {
       const path = url.replace('https://api.testnet.hiro.so/', '');
-      const proxyUrl = `http://localhost:3003/proxy/hiro/${path}`;
+      const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+      const proxyUrl = isLocalhost 
+        ? `http://localhost:3003/proxy/hiro/${path}`
+        : `${window.location.origin}/api/proxy/hiro/${path}`;
       console.log(`🔄 Proxying Hiro request: ${path}`);
       
       return originalFetch(proxyUrl, config);
