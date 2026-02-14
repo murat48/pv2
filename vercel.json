@@ -3,17 +3,5 @@
   "buildCommand": "npm run build:frontend",
   "installCommand": "npm install && cd frontend && npm install",
   "framework": "vite",
-  "outputDirectory": "frontend/dist",
-  "env": {
-    "GEMINI_API_KEY": "@gemini_api_key",
-    "NETWORK": "@network",
-    "SERVER_ADDRESS": "@server_address",
-    "FACILITATOR_URL": "@facilitator_url",
-    "SERVICE_NAME": "@service_name",
-    "SERVICE_IMAGE": "@service_image",
-    "WALLET_STANDARD": "@wallet_standard",
-    "WALLET_ADVANCED": "@wallet_advanced",
-    "WALLET_PREMIUM": "@wallet_premium",
-    "WALLET_ENTERPRISE": "@wallet_enterprise"
-  }
+  "outputDirectory": "frontend/dist"
 }
