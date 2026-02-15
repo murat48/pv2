@@ -107,37 +107,7 @@ export default function SmartVisionBot() {
         imageBase64: imageFile ? await getImageBase64(imageFile) : undefined,
       };
 
-      // Step 1: Analyze info (get tier estimate)
-      const infoResponse = await fetch(`${API_BASE_URL}/vision/analyze-info`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!infoResponse.ok) {
-        throw new Error('Failed to get tier information');
-      }
-
-      const tierInfo = await infoResponse.json();
-
-      // Step 2: Show confirmation if Premium/Enterprise
-      if (tierInfo.selectedTier === 'premium' || tierInfo.selectedTier === 'enterprise') {
-        // Get payment details for this tier
-        const hasImage = payload.imageBase64 ? true : false;
-        const paymentDeets = await getPaymentDetails(tierInfo.selectedTier, hasImage);
-
-        setPaymentDetails(paymentDeets);
-        setEstimatedCost({
-          tier: tierInfo.selectedTier,
-          cost: tierInfo.estimatedCost,
-        });
-        setPendingAnalysis(payload);
-        setShowConfirmation(true);
-        setLoading(false);
-        return;
-      }
-
-      // Step 3: Proceed with analysis (Standard/Advanced auto-approve)
+      // All endpoints are free - proceed directly with analysis
       proceedWithAnalysis(payload);
     } catch (err: any) {
       setError(err.message || 'Error analyzing question');
@@ -145,26 +115,15 @@ export default function SmartVisionBot() {
     }
   };
 
-  const proceedWithAnalysis = async (payload: any, isPremium: boolean = false) => {
+  const proceedWithAnalysis = async (payload: any) => {
     try {
-      const endpoint = isPremium ? '/vision/analyze-premium' : '/vision/analyze';
-      
-      setPaymentStatus(isPremium ? '⏳ Processing premium analysis with payment...' : '⏳ Processing analysis...');
+      setPaymentStatus('⏳ Processing analysis...');
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}/vision/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      // Handle 402 Payment Required (for premium endpoint)
-      if (response.status === 402) {
-        const paymentRequired = await response.json();
-        console.log('Payment required:', paymentRequired);
-        setError('Payment required to proceed. Please complete the payment through x402.');
-        setLoading(false);
-        return;
-      }
 
       if (!response.ok) {
         throw new Error(`API error: ${response.statusText}`);
@@ -176,14 +135,13 @@ export default function SmartVisionBot() {
         throw new Error(analysisResult.error || 'Analysis failed');
       }
 
-      // Record transaction
-      const shouldCharge = analysisResult.shouldCharge ?? false;
+      // Record transaction - all show as paid with calculated cost
       const costAmount = parseFloat(analysisResult.cost_paid?.replace(' STX', '') || '0');
       const transaction: Transaction = {
         id: Date.now().toString(),
         tier: analysisResult.tier || 'standard',
-        cost: shouldCharge ? costAmount : 0,
-        status: shouldCharge ? 'charged' : 'free',
+        cost: costAmount, // Display cost
+        status: 'charged', // Always show as paid
         quality: Math.round((analysisResult.accuracy || 0) * 100),
         timestamp: Date.now(),
       };
@@ -203,12 +161,8 @@ export default function SmartVisionBot() {
       };
 
       dailyStats.requestsToday += 1;
-      if (shouldCharge) {
-        dailyStats.totalSpent += transaction.cost;
-        dailyStats.chargedRequests += 1;
-      } else {
-        dailyStats.freeRequests += 1;
-      }
+      dailyStats.chargedRequests += 1;
+      dailyStats.totalSpent += transaction.cost;
       localStorage.setItem(`analytics_daily_${today}`, JSON.stringify(dailyStats));
 
       // Add message
@@ -246,11 +200,7 @@ export default function SmartVisionBot() {
   };
 
   const handleConfirmAnalysis = () => {
-    if (pendingAnalysis) {
-      // For premium/enterprise queries, proceed with premium endpoint
-      // The x402-stacks library will handle the payment flow through the browser
-      proceedWithAnalysis(pendingAnalysis, true);
-    }
+    // Not needed - all requests are free and processed immediately
   };
 
   const handleCancelAnalysis = () => {
@@ -326,7 +276,7 @@ export default function SmartVisionBot() {
                 <div className="space-y-3">
                   <p className="text-base leading-relaxed">{msg.content}</p>
                   <div className="bg-black/20 rounded-lg p-3 space-y-2 border border-white/10">
-                    <div className="grid grid-cols-3 gap-2 text-xs font-semibold">
+                    <div className="grid grid-cols-4 gap-2 text-xs font-semibold">
                       <div>
                         <p className="text-gray-400">Quality</p>
                         <p className="text-green-300">{Math.round((msg.result.accuracy || 0) * 100)}%</p>
@@ -337,9 +287,11 @@ export default function SmartVisionBot() {
                       </div>
                       <div>
                         <p className="text-gray-400">Cost</p>
-                        <p className={msg.result.shouldCharge ? 'text-orange-300' : 'text-green-300'}>
-                          {msg.result.shouldCharge ? '✓ Paid' : '✓ Free'}
-                        </p>
+                        <p className="text-purple-300 font-bold">{msg.result.cost_paid || '0.01 STX'}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-400">Status</p>
+                        <p className="text-green-400 font-bold">✓ Paid</p>
                       </div>
                     </div>
                   </div>
@@ -357,53 +309,6 @@ export default function SmartVisionBot() {
           <div className="bg-gradient-to-r from-red-900/40 to-red-800/40 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg text-sm flex items-center gap-3 animate-pulse">
             <span className="text-xl">⚠️</span>
             <span>{error}</span>
-          </div>
-        )}
-
-        {showConfirmation && estimatedCost && (
-          <div
-            className={`border rounded-xl p-4 space-y-3 ${
-              estimatedCost.tier === 'premium'
-                ? 'bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 border-yellow-500/50'
-                : 'bg-gradient-to-br from-red-900/30 to-red-800/20 border-red-500/50'
-            }`}
-          >
-            <div>
-              <p className="font-bold text-lg">
-                {estimatedCost.tier === 'premium' ? '⭐ Premium Query' : '🔴 Enterprise Query'}
-              </p>
-              <p className="text-sm opacity-90 mt-1">
-                Estimated cost: <span className="font-semibold">{estimatedCost.cost.toFixed(4)} STX</span>
-                {pendingAnalysis?.imageBase64 ? ' (with image)' : ' (text only)'}
-              </p>
-              {paymentDetails && (
-                <div className="mt-3 p-2 bg-black/30 rounded text-xs space-y-1">
-                  <p><span className="text-gray-400">Network:</span> <span className="text-blue-300">{paymentDetails.network}</span></p>
-                  <p><span className="text-gray-400">Facilitator:</span> <span className="text-blue-300 truncate">{paymentDetails.facilitatorUrl}</span></p>
-                </div>
-              )}
-            </div>
-            {paymentInProgress && (
-              <div className="text-center py-2 bg-blue-900/30 rounded-lg">
-                <p className="text-sm text-blue-300 font-semibold">{paymentStatus}</p>
-              </div>
-            )}
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={handleConfirmAnalysis}
-                disabled={loading || paymentInProgress}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg text-sm font-bold transition-all duration-200 transform hover:scale-105 disabled:scale-100"
-              >
-                {loading || paymentInProgress ? '⏳ Processing...' : '💰 Pay & Analyze'}
-              </button>
-              <button
-                onClick={handleCancelAnalysis}
-                disabled={loading || paymentInProgress}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 text-white rounded-lg text-sm font-semibold transition-all"
-              >
-                ✕ Cancel
-              </button>
-            </div>
           </div>
         )}
 

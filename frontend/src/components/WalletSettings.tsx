@@ -67,8 +67,18 @@ export default function WalletSettings() {
       <hr className="border-slate-700 my-4" />
 
       <div className="text-xs text-gray-400 space-y-2">
-        <h3 className="font-semibold text-gray-300">Pricing Tiers</h3>
-        <div className="space-y-1 text-xs">
+        <h3 className="font-semibold text-gray-300">💰 Pricing Model</h3>
+        <div className="space-y-1 text-xs bg-green-900/20 border border-green-500/50 rounded p-3">
+          <p className="text-green-300 font-bold">✓ All requests are completely FREE!</p>
+          <p className="text-gray-400 mt-2">Quality-based analysis will estimate costs, but actual payment is not required. The system uses dynamic pricing based on:</p>
+          <ul className="mt-2 space-y-1 text-gray-400">
+            <li>📊 <strong>Quality:</strong> Response accuracy score (0-100%)</li>
+            <li>🎯 <strong>Complexity:</strong> Question and image analysis difficulty</li>
+            <li>📸 <strong>Media:</strong> Image processing adds 2x base cost (displayed only)</li>
+          </ul>
+        </div>
+        <div className="mt-3 space-y-1 text-xs">
+          <p className="text-gray-400 font-semibold">Reference Pricing (for display only):</p>
           <p>📄 <strong>Standard:</strong> 0.01 STX (text), 0.02 STX (image)</p>
           <p>🎯 <strong>Advanced:</strong> 0.02 STX (text), 0.04 STX (image)</p>
           <p>⭐ <strong>Premium:</strong> 0.03 STX (text), 0.06 STX (image)</p>
