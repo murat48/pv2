@@ -7,18 +7,6 @@ import { ChatMessage, AnalysisResult, Transaction, DailyStats } from '../types/i
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
   (typeof window !== 'undefined' && window.location.hostname === 'localhost' ? 'http://localhost:3003/api' : '/api');
 
-interface PaymentDetails {
-  success: boolean;
-  tier: string;
-  amount: number;
-  formattedAmount: string;
-  microSTX: string;
-  payTo: string;
-  network: string;
-  facilitatorUrl: string;
-  description: string;
-}
-
 export default function SmartVisionBot() {
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const saved = localStorage.getItem('chat_messages');
@@ -29,12 +17,6 @@ export default function SmartVisionBot() {
   const [imagePreview, setImagePreview] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [estimatedCost, setEstimatedCost] = useState<{ tier: string; cost: number } | null>(null);
-  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
-  const [pendingAnalysis, setPendingAnalysis] = useState<any>(null);
-  const [paymentInProgress, setPaymentInProgress] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -69,28 +51,6 @@ export default function SmartVisionBot() {
     });
   };
 
-  const getPaymentDetails = async (
-    tier: string,
-    hasImage: boolean
-  ): Promise<PaymentDetails | null> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/vision/get-payment-details`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier, hasImage }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get payment details');
-      }
-
-      return await response.json();
-    } catch (err) {
-      console.error('Error getting payment details:', err);
-      return null;
-    }
-  };
-
   const handleAnalyze = async () => {
     if (!question.trim()) {
       setError('Please ask a question');
@@ -99,7 +59,6 @@ export default function SmartVisionBot() {
 
     setLoading(true);
     setError('');
-    setPaymentStatus('');
 
     try {
       const payload = {
@@ -117,8 +76,6 @@ export default function SmartVisionBot() {
 
   const proceedWithAnalysis = async (payload: any) => {
     try {
-      setPaymentStatus('⏳ Processing analysis...');
-
       const response = await fetch(`${API_BASE_URL}/vision/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -187,26 +144,11 @@ export default function SmartVisionBot() {
       setImageFile(null);
       setImagePreview('');
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setShowConfirmation(false);
-      setPendingAnalysis(null);
-      setPaymentStatus('');
-      setPaymentDetails(null);
     } catch (err: any) {
       setError(err.message || 'Error during analysis');
     } finally {
       setLoading(false);
-      setPaymentInProgress(false);
     }
-  };
-
-  const handleConfirmAnalysis = () => {
-    // Not needed - all requests are free and processed immediately
-  };
-
-  const handleCancelAnalysis = () => {
-    setShowConfirmation(false);
-    setPendingAnalysis(null);
-    setLoading(false);
   };
 
   return (
