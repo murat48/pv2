@@ -6,6 +6,52 @@ interface AnalysisPayload {
   imageBase64?: string;
 }
 
+function detectComplexity(question: string, hasImage: boolean): number {
+  const lowerQuestion = question.toLowerCase();
+  const wordCount = question.split(/\s+/).length;
+
+  if (
+    wordCount > 30 ||
+    /complex|advanced analysis|multiple perspectives|enterprise|strategic/i.test(lowerQuestion)
+  ) {
+    return 4;
+  }
+
+  if (/why|how|explain|analyze|describe|compare/.test(lowerQuestion)) {
+    return 3;
+  }
+  if (
+    /detailed|comprehensive|in depth|thorough|elaborate|extensive|complete/.test(
+      lowerQuestion
+    )
+  ) {
+    return 3;
+  }
+
+  if (wordCount > 15) {
+    return 2;
+  }
+  if (/detail|more|information|about|tell|show/i.test(lowerQuestion)) {
+    return 2;
+  }
+
+  return 1;
+}
+
+function mapComplexityToAccuracy(complexity: number): number {
+  // Daha zor soru = daha yüksek güven oranı
+  switch (complexity) {
+    case 4: // Enterprise - en karmaşık
+      return 0.95; // %95
+    case 3: // Premium - karmaşık
+      return 0.88; // %88
+    case 2: // Advanced - orta
+      return 0.80; // %80
+    default: // Standard - basit
+      return 0.70; // %70
+  }
+}
+
 function generateMockAnalysis(question: string, tier: string): string {
   const tiers = {
     standard: 'A basic analysis of your question.',
@@ -106,27 +152,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const hasImage = (imageBase64?.trim().length ?? 0) > 0;
     console.log(`📨 Premium analysis request: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"${hasImage ? ', with image' : ''}`);
     
-    // Check for x402 payment header
-    const paymentHeader = req.headers['x-payment'];
-    if (!paymentHeader) {
-      // Return 402 Payment Required if no payment info
-      console.log('💳 Payment required but not provided');
-      res.status(402).json({
-        success: false,
-        x402Version: 1,
-        description: 'Premium analysis requires STX payment',
-        scheme: 'exact',
-        network: 'stacks',
-        asset: 'STX',
-        maxAmountRequired: '60000', // 0.06 STX in microSTX
-        payTo: process.env.WALLET_PREMIUM || process.env.SERVER_ADDRESS || '',
-        facilitatorUrl: process.env.FACILITATOR_URL || 'https://facilitator.stacksx402.com',
-        maxTimeoutSeconds: 300,
-      });
-      return;
-    }
-
-    console.log('✅ Payment verified, proceeding with analysis');
+    // Detect complexity and calculate dynamic accuracy
+    const complexity = detectComplexity(question, hasImage);
+    const dynamicAccuracy = mapComplexityToAccuracy(complexity);
     
     // Analysis with Gemini
     const startTime = Date.now();
@@ -143,21 +171,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       question,
       tier: 'premium',
       analysis,
-      complexity_level: 3,
+      complexity_level: complexity,
       processing_time_ms: processingTime,
       model: 'Gemini Pro Vision',
-      accuracy: 0.92,
+      accuracy: dynamicAccuracy,
       cost_paid: `${amount} STX`,
-      qualityScore: 0.92,
-      shouldCharge: true,
+      qualityScore: dynamicAccuracy,
+      shouldCharge: false,
       estimatedTokens: estimatedActualTokens,
       tokenLimit: tokenLimits.premium,
-      payment: {
-        transaction: 'pending',
-        payer: 'user',
-        network: 'testnet',
-        settled: false,
-      },
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {

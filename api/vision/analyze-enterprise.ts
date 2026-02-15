@@ -6,6 +6,52 @@ interface AnalysisPayload {
   imageBase64?: string;
 }
 
+function detectComplexity(question: string, hasImage: boolean): number {
+  const lowerQuestion = question.toLowerCase();
+  const wordCount = question.split(/\s+/).length;
+
+  if (
+    wordCount > 30 ||
+    /complex|advanced analysis|multiple perspectives|enterprise|strategic/i.test(lowerQuestion)
+  ) {
+    return 4;
+  }
+
+  if (/why|how|explain|analyze|describe|compare/.test(lowerQuestion)) {
+    return 3;
+  }
+  if (
+    /detailed|comprehensive|in depth|thorough|elaborate|extensive|complete/.test(
+      lowerQuestion
+    )
+  ) {
+    return 3;
+  }
+
+  if (wordCount > 15) {
+    return 2;
+  }
+  if (/detail|more|information|about|tell|show/i.test(lowerQuestion)) {
+    return 2;
+  }
+
+  return 1;
+}
+
+function mapComplexityToAccuracy(complexity: number): number {
+  // Daha zor soru = daha yüksek güven oranı
+  switch (complexity) {
+    case 4: // Enterprise - en karmaşık
+      return 0.95; // %95
+    case 3: // Premium - karmaşık
+      return 0.88; // %88
+    case 2: // Advanced - orta
+      return 0.80; // %80
+    default: // Standard - basit
+      return 0.70; // %70
+  }
+}
+
 async function analyzeWithGemini(
   question: string,
   imageBase64: string | undefined,
@@ -89,7 +135,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const hasImage = (imageBase64?.trim().length ?? 0) > 0;
     console.log(`📨 Enterprise analysis request: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"${hasImage ? ', with image' : ''}`);
     
-    // All requests are free - no payment check needed
+    // Detect complexity and calculate dynamic accuracy
+    const complexity = detectComplexity(question, hasImage);
+    const dynamicAccuracy = mapComplexityToAccuracy(complexity);
     
     // Analysis with Gemini
     const startTime = Date.now();
@@ -106,12 +154,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       question,
       tier: 'enterprise',
       analysis,
-      complexity_level: 4,
+      complexity_level: complexity,
       processing_time_ms: processingTime,
       model: 'Gemini 2.0 Flash',
-      accuracy: 0.95,
+      accuracy: dynamicAccuracy,
       cost_paid: `${amount} STX`,
-      qualityScore: 0.95,
+      qualityScore: dynamicAccuracy,
       shouldCharge: false,
       displayedCost: `${amount} STX`,
       estimatedTokens: estimatedActualTokens,
