@@ -1,8 +1,8 @@
-# X402 Vision AI Analysis Service
+# PaySight402 - X402 Vision AI Analysis Service
 
 A blockchain-powered Vision AI analysis service built on **Stacks testnet** with STX micropayment support using the **X402 V2 payment protocol**. The service intelligently detects query complexity and implements dynamic pricing, charging users only for high-quality analytical responses.
 
-**Live Demo:** https://pv2-six.vercel.app
+**Live Demo:** https://projectv2-drab.vercel.app
 
 ---
 
@@ -25,23 +25,27 @@ A blockchain-powered Vision AI analysis service built on **Stacks testnet** with
 ## Features
 
 ✅ **AI-Powered Analysis**
+
 - Google Gemini 2.5 Flash integration
 - Text and image analysis support
 - Dynamic complexity detection
 
 ✅ **Intelligence-Based Pricing**
+
 - Automatic query complexity analysis
 - Tier-based pricing (standard/advanced/premium/enterprise)
 - Conditional payment (high-quality responses only)
 - Dynamic quality scoring based on response length
 
 ✅ **Blockchain Payments**
+
 - X402 V2 protocol for STX micropayments
 - Stacks testnet integration
 - Leather Wallet support
 - Direct facilitator payment settlement
 
 ✅ **Production Ready**
+
 - Vercel serverless deployment
 - Automatic tier detection
 - Payment verification
@@ -52,25 +56,28 @@ A blockchain-powered Vision AI analysis service built on **Stacks testnet** with
 ## Tech Stack
 
 ### Frontend
+
 - **React 18** with TypeScript
 - **Vite** for fast development
 - **TailwindCSS** for styling
 - **Leather Wallet SDK** for blockchain integration
 
 ### Backend
+
 - **Node.js + Express** (local development)
 - **Vercel Serverless Functions** (production)
 - **Google Generative AI SDK** (Gemini API)
 - **x402-stacks@2.0.1** (Payment protocol)
 
 ### Blockchain
+
 - **Stacks Testnet**
 - **X402 V2 Payment Protocol**
 - **BIP39/BIP32** wallet derivation
 - **STX Micropayments**
 
 ---
-
+### Register x402:https://scan.stacksx402.com/resources/3168d588-6c32-4f18-a6dc-42f81c539b34
 ## Project Structure
 
 ```
@@ -92,19 +99,6 @@ projectv2/
 │       ├── analyze-premium.ts    # Premium analysis (required payment)
 │       ├── analyze-info.ts       # Tier complexity detection
 │       └── get-payment-details.ts
-│
-├── backend/                     # Express.js (local development only)
-│   ├── src/
-│   │   ├── routes/
-│   │   │   ├── vision.ts
-│   │   │   └── x402.ts
-│   │   └── services/
-│   │       ├── gemini-service.ts
-│   │       └── payment-service.ts
-│   └── package.json
-│
-├── generate-keys.cjs            # BIP39 seed to private key derivation
-├── .env.production              # Production environment (Vercel)
 ├── .env.local                   # Local development (git-ignored)
 ├── vercel.json                  # Vercel configuration
 └── package.json
@@ -115,6 +109,7 @@ projectv2/
 ## Quick Start
 
 ### Prerequisites
+
 - **Node.js 18+**
 - **Leather Wallet** installed and configured
 - **Stacks testnet** account with some STX for testing
@@ -145,12 +140,14 @@ cd ..
 ### 2. Generate Wallet Keys
 
 Option A: Use existing seed phrase
+
 ```bash
 node generate-keys.cjs "your seed phrase words..."
 # Copy STACKS_PRIVATE_KEY output
 ```
 
 Option B: Create new wallet
+
 ```bash
 npm install -g @stacks/cli
 stx make_keychain -t
@@ -161,6 +158,7 @@ stx make_keychain -t
 ### 3. Configure Environment
 
 Create `.env.local`:
+
 ```bash
 # Blockchain
 NETWORK=testnet
@@ -204,6 +202,7 @@ npm run dev
 ### Environment Variables
 
 **Production (.env.production)** - Set via Vercel dashboard:
+
 ```env
 NETWORK=testnet
 SERVER_ADDRESS=ST2TTX11Z4QSF59TSJ7ES86H9BDXEY2Z0N8JARNF2
@@ -212,6 +211,7 @@ GEMINI_API_KEY=<api_key>
 ```
 
 **Local Development (.env.local)** - Git-ignored file:
+
 ```env
 NETWORK=testnet
 STACKS_PRIVATE_KEY=<your_private_key>
@@ -223,6 +223,7 @@ GEMINI_API_KEY=<api_key>
 ### Key Generation
 
 Use `generate-keys.cjs` to derive keys from seed phrase:
+
 ```bash
 node generate-keys.cjs "your seed phrase..."
 
@@ -240,6 +241,7 @@ node generate-keys.cjs "your seed phrase..."
 ### Public Endpoints
 
 #### 1. Service Discovery
+
 ```
 POST /api/register
 
@@ -261,6 +263,7 @@ Response:
 ```
 
 #### 2. Analyze (Conditional Payment)
+
 ```
 POST /api/vision/analyze
 Content-Type: application/json
@@ -290,6 +293,7 @@ Response (Payment Required - 402 Status):
 ```
 
 #### 3. Analyze Premium (Required Payment)
+
 ```
 POST /api/vision/analyze-premium
 X-Payment: <payment_header>
@@ -315,6 +319,7 @@ Response:
 ```
 
 #### 4. Tier Detection
+
 ```
 POST /api/vision/analyze-info
 
@@ -335,6 +340,7 @@ Response:
 ```
 
 #### 5. Payment Details
+
 ```
 POST /api/vision/get-payment-details
 
@@ -407,16 +413,17 @@ Client                    Server                 Blockchain
 
 ### Pricing Model
 
-| Tier | Text | With Image | Quality Score |
-|------|------|-----------|---------------|
-| Standard | 0.000001 STX | 0.000005 STX | 0.55 |
-| Advanced | 0.000005 STX | 0.000010 STX | 0.65 |
-| Premium | 0.00001 STX | 0.000015 STX | 0.75+ |
-| Enterprise | 0.000015 STX | 0.000020 STX | 0.85+ |
+| Tier       | Text         | With Image   | Quality Score |
+| ---------- | ------------ | ------------ | ------------- |
+| Standard   | 0.000001 STX | 0.000005 STX | 0.55          |
+| Advanced   | 0.000005 STX | 0.000010 STX | 0.65          |
+| Premium    | 0.00001 STX  | 0.000015 STX | 0.75+         |
+| Enterprise | 0.000015 STX | 0.000020 STX | 0.85+         |
 
 ### Complexity Detection
 
 Questions are auto-classified into tiers based on:
+
 - **Word count** (>30 = enterprise)
 - **Keywords** (why, how, explain = premium)
 - **Detail indicators** (comprehensive, detailed = advanced)
@@ -473,6 +480,7 @@ curl -X POST https://pv2-six.vercel.app/api/vision/analyze \
 ### Local Testing
 
 **Frontend + Backend:**
+
 ```bash
 # Terminal 1: Frontend
 cd frontend && npm run dev
@@ -484,6 +492,7 @@ cd backend && npm run dev
 ```
 
 **Frontend + Cloud API:**
+
 ```bash
 # Terminal: Frontend only
 cd frontend && npm run dev
@@ -501,14 +510,14 @@ cd frontend && npm run dev
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `api/register.ts` | X402 service registration |
-| `api/vision/analyze.ts` | Main analysis endpoint (conditional payment) |
-| `api/vision/analyze-premium.ts` | Premium tier (required payment) |
-| `api/vision/analyze-info.ts` | Tier complexity detection |
-| `frontend/lib/payment-client.ts` | Leather Wallet integration |
-| `generate-keys.cjs` | BIP39 key generation |
+| File                             | Purpose                                      |
+| -------------------------------- | -------------------------------------------- |
+| `api/register.ts`                | X402 service registration                    |
+| `api/vision/analyze.ts`          | Main analysis endpoint (conditional payment) |
+| `api/vision/analyze-premium.ts`  | Premium tier (required payment)              |
+| `api/vision/analyze-info.ts`     | Tier complexity detection                    |
+| `frontend/lib/payment-client.ts` | Leather Wallet integration                   |
+| `generate-keys.cjs`              | BIP39 key generation                         |
 
 ---
 
@@ -519,6 +528,7 @@ cd frontend && npm run dev
 **Problem:** Frontend can't find API endpoint
 
 **Solution:**
+
 ```bash
 # Check API_BASE_URL in SmartVisionBot.tsx
 # For production: should use /api (relative)
@@ -533,6 +543,7 @@ vercel --prod --yes
 **Problem:** Payment validation fails
 
 **Solution:**
+
 - Verify network format is `"stacks"` (not `"stacks:testnet"`)
 - Check `payTo` address is valid
 - Ensure facilitator URL is correct
@@ -542,6 +553,7 @@ vercel --prod --yes
 **Problem:** API analysis fails
 
 **Solution:**
+
 ```bash
 # Get key from Google AI Studio
 # https://makersuite.google.com/app/apikey
@@ -558,6 +570,7 @@ GEMINI_API_KEY=your_key_here
 **Problem:** Leather Wallet fails to connect
 
 **Solution:**
+
 - Download Leather Wallet from https://www.leather.io/
 - Install browser extension
 - Create testnet account
@@ -569,6 +582,7 @@ GEMINI_API_KEY=your_key_here
 **Problem:** `node generate-keys.cjs` errors
 
 **Solution:**
+
 ```bash
 # Ensure all deps installed
 npm install bip39 bip32 tiny-secp256k1
@@ -585,6 +599,7 @@ node generate-keys.cjs "word1 word2 word3 ... word24"
 
 **Solution:**
 This is **expected behavior**. Payment is only charged when:
+
 - Quality score ≥ 75% (0.75)
 - Premium tier requested
 - Complex question detected
@@ -620,15 +635,15 @@ curl -X POST https://pv2-six.vercel.app/api/vision/analyze-info \
 
 ### Important URLs
 
-| Service | URL |
-|---------|-----|
-| **Frontend (Dev)** | http://localhost:5173 |
-| **Backend (Dev)** | http://localhost:3003 |
-| **Production** | https://pv2-six.vercel.app |
-| **Leather Wallet** | https://www.leather.io/ |
-| **Stacks Faucet** | https://testnet.stacks.org/faucet |
-| **Facilitator** | https://facilitator.stacksx402.com |
-| **Gemini API** | https://makersuite.google.com/app/apikey |
+| Service            | URL                                      |
+| ------------------ | ---------------------------------------- |
+| **Frontend (Dev)** | http://localhost:5173                    |
+| **Backend (Dev)**  | http://localhost:3003                    |
+| **Production**     | https://pv2-six.vercel.app               |
+| **Leather Wallet** | https://www.leather.io/                  |
+| **Stacks Faucet**  | https://testnet.stacks.org/faucet        |
+| **Facilitator**    | https://facilitator.stacksx402.com       |
+| **Gemini API**     | https://makersuite.google.com/app/apikey |
 
 ---
 
@@ -662,6 +677,7 @@ MIT License - see LICENSE file for details
 ## Support
 
 For issues and questions:
+
 1. Check the [Troubleshooting](#troubleshooting) section
 2. Review API endpoint examples
 3. Check environment variable configuration
